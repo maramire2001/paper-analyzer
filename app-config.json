@@ -1,0 +1,83 @@
+{
+  "appProfile": {
+    "name": "Auditor de Seguridad Ambiental",
+    "version": "1.0.0",
+    "specialization": "Cuenca de Tula",
+    "mode": "environmental-security-audit",
+    "description": "Sistema especializado de análisis normativo y académico para auditoría ambiental integral"
+  },
+  "analysis": {
+    "maxDocuments": 5,
+    "documentTypes": ["pdf", "docx", "txt"],
+    "targetWordCount": 2500,
+    "referenciationStandard": "APA7",
+    "llmModel": "llama-3.3-70b-versatile",
+    "analysisTemperature": 0.2,
+    "maxTokens": 2048
+  },
+  "axes": {
+    "themesEmergents": 3,
+    "sections": [
+      {
+        "id": "architecture",
+        "name": "Arquitectura y Contexto",
+        "wordCount": 400,
+        "description": "Identificación de autoridades emisoras y relevancia para la Cuenca de Tula"
+      },
+      {
+        "id": "methodology",
+        "name": "Rigor Metodológico y Técnico",
+        "wordCount": 600,
+        "description": "Análisis de metodología y parámetros legales presentados"
+      },
+      {
+        "id": "themes",
+        "name": "Ejes Temáticos Emergentes",
+        "wordCount": 600,
+        "description": "Identificación de 3 temas predominantes (Toxicología, Justicia Ambiental, etc.)"
+      },
+      {
+        "id": "hydricEconomy",
+        "name": "Seguridad Hídrica y Economía Circular",
+        "wordCount": 600,
+        "description": "Análisis de riesgos y vacíos para reúso y ciclos cerrados"
+      },
+      {
+        "id": "recommendations",
+        "name": "Dictamen para la Toma de Decisiones",
+        "wordCount": 300,
+        "description": "Recomendaciones técnicas concretas para actualización normativa"
+      }
+    ]
+  },
+  "matrix": {
+    "name": "Matriz de Intersección Transversal",
+    "criteria": [
+      "Aporte Científico",
+      "Sustento Legal",
+      "Riesgo Humano",
+      "Potencial de Economía Circular",
+      "Estado de Vigencia"
+    ]
+  },
+  "commands": {
+    "deepReport": "/Informe_Profundo",
+    "clear": "/Limpiar"
+  },
+  "restrictions": {
+    "externalData": false,
+    "dataInvention": false,
+    "allCitableToSource": true,
+    "reportMissingData": "Información no disponible en la fuente analizada"
+  },
+  "geography": {
+    "territory": "Cuenca de Tula",
+    "focus": [
+      "Contaminación ambiental",
+      "Seguridad hídrica",
+      "Riesgos ocupacionales",
+      "Economía circular",
+      "Justicia ambiental"
+    ]
+  }
+}
