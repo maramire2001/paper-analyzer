@@ -27,10 +27,19 @@ if (!fs.existsSync(ANALYSIS_STORAGE)) fs.mkdirSync(ANALYSIS_STORAGE, { recursive
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Helper de timeout para Promesas para evitar que el proceso se quede "pasmado"
+function withTimeout(promise, ms, description = 'Operación') {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(`${description} superó el tiempo límite de ${ms/1000}s`)), ms))
+  ]);
+}
+
 // ── Extracción de texto según tipo de archivo ──────────────────────────────
 async function extractText(filePath, originalName) {
   const ext = path.extname(originalName).toLowerCase();
-  try {
+  
+  const extractPromise = async () => {
     if (ext === '.pdf') {
       const buffer = fs.readFileSync(filePath);
       const data = await pdfParse(buffer);
@@ -41,9 +50,13 @@ async function extractText(filePath, originalName) {
     } else {
       return fs.readFileSync(filePath, 'utf-8');
     }
+  };
+
+  try {
+    return await withTimeout(extractPromise(), 30000, 'Extracción de texto del archivo');
   } catch (err) {
     console.error('Error extrayendo texto:', err.message);
-    return '';
+    throw new Error(`Fallo en lectura: ${err.message}`);
   }
 }
 
@@ -78,12 +91,14 @@ Responde ÚNICAMENTE con un JSON válido con esta estructura exacta:
   ]
 }`;
 
-  const response = await groq.chat.completions.create({
+  const groqPromise = groq.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
     messages: [{ role: 'user', content: prompt }],
     temperature: 0.2,
     max_tokens: 2048
   });
+
+  const response = await withTimeout(groqPromise, 60000, 'Análisis de Inteligencia Artificial (Groq)');
 
   const raw = response.choices[0]?.message?.content || '{}';
   const match = raw.match(/\{[\s\S]*\}/);
@@ -148,20 +163,20 @@ const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`Backend corriendo en http://localhost:${PORT}`));
 
 // ── Worker ─────────────────────────────────────────────────────────────────
-new Worker('analysis', async job => {
+const worker = new Worker('analysis', async job => {
   console.log(`Procesando: ${job.data.originalName}`);
 
   const rawText = await extractText(job.data.path, job.data.originalName);
   if (!rawText || rawText.trim().length < 50) {
-    throw new Error('No se pudo extraer texto suficiente del archivo');
+    throw new Error('No se pudo extraer texto suficiente del archivo o el archivo está vacío');
   }
 
   let metadata;
   try {
     metadata = await analyzeWithGroq(rawText, job.data.originalName);
   } catch (err) {
-    console.error('Error Groq:', err.message);
-    throw new Error(`Groq falló: ${err.message}`);
+    console.error('Error Groq u Operación:', err.message);
+    throw new Error(`Procesamiento falló: ${err.message}`);
   }
 
   const wb = xlsx.utils.book_new();
@@ -205,4 +220,12 @@ new Worker('analysis', async job => {
   console.log(`✅ Completado: ${job.data.originalName}`);
   return { ...metadata, outputPath, rawTextSnippet: rawText.slice(0, 300) };
 
-}, { connection });
+}, { connection, concurrency: 2 }); // Allow processing up to 2 jobs at a time
+
+worker.on('failed', (job, err) => {
+  console.error(`❌ Job ${job?.id} falló:`, err.message);
+});
+
+worker.on('error', err => {
+  console.error('⚠️ Error crítico en el Worker de BullMQ:', err);
+});
