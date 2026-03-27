@@ -14,6 +14,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Serve the frontend build
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
@@ -157,6 +160,10 @@ app.delete('/api/jobs/:jobId', async (req, res) => {
   if (fs.existsSync(resultFile)) fs.unlinkSync(resultFile);
   await job.remove();
   res.json({ message: `Job ${req.params.jobId} eliminado correctamente` });
+});
+
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
 });
 
 const PORT = process.env.PORT || 4000;

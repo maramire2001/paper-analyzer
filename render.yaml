@@ -5,7 +5,7 @@ services:
     env: node
     branch: main
     plan: free
-    buildCommand: cd backend && npm install
+    buildCommand: npm install --prefix frontend && npm run build --prefix frontend && npm install --prefix backend
     startCommand: cd backend && npm run start
     envVars:
       - key: REDIS_URL
@@ -18,17 +18,7 @@ services:
       - key: GROQ_API_KEY
         sync: false   # Pegar tu Groq API key en el dashboard de Render
 
-  # ── Frontend (Static Site) ───────────────────────────────────────────
-  - type: web
-    name: paper-analyzer-frontend
-    env: static
-    branch: main
-    plan: free
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: ./frontend/dist
-    envVars:
-      - key: VITE_API_URL
-        sync: false   # Pegar la URL del backend luego del primer deploy (ej: https://paper-analyzer-backend.onrender.com)
+
 
 # ── Redis ─────────────────────────────────────────────────────────────
 redis:
