@@ -102,11 +102,11 @@ export default function App() {
       <div style={{ maxWidth: '900px', margin: '0 auto' }}>
         <div style={{ background: '#f8f9fa', border: '1px solid #dee2e6', borderRadius: '8px', padding: '20px', marginBottom: '24px' }}>
           <h2 style={{ marginTop: 0, fontSize: '16px', color: '#495057' }}>Cargar Papers</h2>
-          <p style={{ color: '#6c757d', fontSize: '14px' }}>Acepta .pdf, .docx y .txt — hasta 10 archivos a la vez.</p>
+          <p style={{ color: '#6c757d', fontSize: '14px' }}>Acepta .pdf, .docx, .txt y ahora **Imágenes (.png, .jpg)** para papeles escaneados (OCR).</p>
           <input
             type="file"
             multiple
-            accept=".pdf,.docx,.txt"
+            accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
             onChange={e => setFiles(Array.from(e.target.files))}
             style={{ marginBottom: '12px', display: 'block' }}
           />

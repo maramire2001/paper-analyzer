@@ -46,7 +46,16 @@ async function extractText(filePath, originalName) {
     if (ext === '.pdf') {
       const buffer = fs.readFileSync(filePath);
       const data = await pdfParse(buffer);
+      
+      // Si a pesar de ser PDF no tiene texto (ej. escaneado), se devolverá vacío 
+      // y lanzará error al validar longitud en el worker.
       return data.text || '';
+    } else if (['.png', '.jpg', '.jpeg'].includes(ext)) {
+      console.log(`[OCR] Iniciando reconocimiento de imagen: ${originalName}...`);
+      const Tesseract = require('tesseract.js');
+      // We use spa+eng to handle both languages common in analysis.
+      const result = await Tesseract.recognize(filePath, 'spa+eng');
+      return result.data.text + '\n\n';
     } else if (ext === '.docx') {
       const result = await mammoth.extractRawText({ path: filePath });
       return result.value || '';
@@ -56,7 +65,8 @@ async function extractText(filePath, originalName) {
   };
 
   try {
-    return await withTimeout(extractPromise(), 30000, 'Extracción de texto del archivo');
+    // OCR can be slow, 180 seconds timeout
+    return await withTimeout(extractPromise(), 180000, 'Extracción de texto del archivo (OCR)');
   } catch (err) {
     console.error('Error extrayendo texto:', err.message);
     throw new Error(`Fallo en lectura: ${err.message}`);
